@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/damageable_target.gd" id="1_target"]
+
+[sub_resource type="CylinderMesh" id="TargetMesh"]
+top_radius = 0.72
+bottom_radius = 0.72
+height = 2.2
+radial_segments = 20
+
+[sub_resource type="CylinderShape3D" id="TargetShape"]
+radius = 0.72
+height = 2.2
+
+[sub_resource type="StandardMaterial3D" id="TargetMaterial"]
+albedo_color = Color(0.8, 0.22, 0.08, 1)
+metallic = 0.1
+roughness = 0.55
+
+[node name="Target" type="StaticBody3D"]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("1_target")
+max_health = 100.0
+
+[node name="Visual" type="MeshInstance3D" parent="."]
+mesh = SubResource("TargetMesh")
+material_override = SubResource("TargetMaterial")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("TargetShape")
