@@ -52,6 +52,12 @@ theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 14
 text = "Модуль отдачи: --"
 
+[node name="Slide" type="Label" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 1, 0.65, 1)
+theme_override_font_sizes/font_size = 14
+text = "СКОЛЬЖЕНИЕ: ГОТОВО"
+
 [node name="SetupPanel" type="PanelContainer" parent="."]
 offset_left = 440.0
 offset_top = 230.0
