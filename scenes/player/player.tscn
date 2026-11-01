@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/fps_player.gd" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/automatic_rifle.tscn" id="2_rifle"]
+[ext_resource type="Script" path="res://scripts/combat/health_component.gd" id="3_health"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_player"]
 radius = 0.45
@@ -43,4 +44,8 @@ fov = 78.0
 near = 0.05
 
 [node name="AutomaticRifle" parent="CameraPivot" instance=ExtResource("2_rifle")]
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("3_health")
+max_health = 100.0
 

@@ -58,6 +58,37 @@ theme_override_colors/font_color = Color(0.55, 1, 0.65, 1)
 theme_override_font_sizes/font_size = 14
 text = "СКОЛЬЖЕНИЕ: ГОТОВО"
 
+[node name="Health" type="ProgressBar" parent="Margin/VBox"]
+custom_minimum_size = Vector2(250, 18)
+layout_mode = 2
+max_value = 100.0
+value = 100.0
+show_percentage = true
+
+[node name="DefeatPanel" type="PanelContainer" parent="."]
+offset_left = 440.0
+offset_top = 230.0
+offset_right = 840.0
+offset_bottom = 490.0
+
+[node name="Center" type="CenterContainer" parent="DefeatPanel"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="DefeatPanel/Center"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="DefeatPanel/Center/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "ПОРАЖЕНИЕ"
+horizontal_alignment = 1
+
+[node name="Restart" type="Button" parent="DefeatPanel/Center/VBox"]
+layout_mode = 2
+text = "Начать заново"
+
 [node name="SetupPanel" type="PanelContainer" parent="."]
 offset_left = 440.0
 offset_top = 230.0

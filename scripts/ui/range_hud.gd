@@ -6,11 +6,14 @@ extends CanvasLayer
 @onready var hit_marker: Label = $HitMarker
 @onready var module_label: Label = $Margin/VBox/Module
 @onready var slide_label: Label = $Margin/VBox/Slide
+@onready var health_bar: ProgressBar = $Margin/VBox/Health
+@onready var defeat_panel: PanelContainer = $DefeatPanel
 var _hit_marker_time := 0.0
 var _player: FPSPlayer
 
 func _ready() -> void:
 	hit_marker.visible = false
+	defeat_panel.hide()
 
 func bind_weapon(weapon: AutomaticRifle) -> void:
 	weapon.ammo_changed.connect(_on_ammo_changed)
@@ -22,6 +25,20 @@ func bind_weapon(weapon: AutomaticRifle) -> void:
 
 func bind_player(player: FPSPlayer) -> void:
 	_player = player
+	_player.health.health_changed.connect(_on_player_health_changed)
+	_player.health.died.connect(show_defeat)
+	_on_player_health_changed(_player.health.current_health, _player.health.max_health)
+
+func is_defeat_visible() -> bool:
+	return defeat_panel.visible
+
+func show_defeat() -> void:
+	defeat_panel.show()
+	status_label.text = ""
+
+func _on_player_health_changed(current: float, maximum: float) -> void:
+	health_bar.max_value = maximum
+	health_bar.value = current
 
 func _update_slide_indicator() -> void:
 	if _player == null:
