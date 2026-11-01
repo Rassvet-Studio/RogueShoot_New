@@ -17,7 +17,7 @@ func reset_health() -> void:
 	is_dead = false
 	health_changed.emit(current_health, max_health)
 
-func apply_damage(amount: float, _source: Node = null) -> bool:
+func apply_damage(amount: float, _source = null) -> bool:
 	if is_dead or amount <= 0.0:
 		return false
 	current_health = maxf(current_health - amount, 0.0)

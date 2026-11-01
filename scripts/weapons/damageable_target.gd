@@ -25,7 +25,7 @@ func _process(delta: float) -> void:
 		if _flash_time <= 0.0:
 			visual.material_override = _base_material
 
-func apply_damage(amount: float, source: Node = null) -> bool:
+func apply_damage(amount: float, source = null) -> bool:
 	return health.apply_damage(amount, source)
 
 func _on_health_changed(current: float, _maximum: float) -> void:

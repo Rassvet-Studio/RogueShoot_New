@@ -131,7 +131,7 @@ func _process_slide(delta: float, wish_direction: Vector3) -> void:
 func _horizontal_speed() -> float:
 	return Vector2(velocity.x, velocity.z).length()
 
-func apply_damage(amount: float, source: Node = null) -> bool:
+func apply_damage(amount: float, source = null) -> bool:
 	return health.apply_damage(amount, source)
 
 func is_alive() -> bool:

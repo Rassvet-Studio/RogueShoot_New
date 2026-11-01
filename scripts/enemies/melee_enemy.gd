@@ -127,7 +127,7 @@ func _perform_attack() -> void:
 	if _target.has_method("apply_damage"):
 		_target.apply_damage(attack_damage, self)
 
-func apply_damage(amount: float, source: Node = null) -> bool:
+func apply_damage(amount: float, source = null) -> bool:
 	return health.apply_damage(amount, source)
 
 func _on_health_changed(current: float, _maximum: float) -> void:

@@ -10,7 +10,7 @@ extends Node3D
 @export var enemy_scene: PackedScene = preload("res://scenes/enemies/melee_enemy.tscn")
 
 var _spawn_index := 0
-var _enemy_spawn_points := [Vector3(-8, 1.1, -8), Vector3(8, 1.1, -8), Vector3(0, 1.1, -11)]
+var _enemy_spawn_points := [Vector3(-8, 0.1, -8), Vector3(8, 0.1, -8), Vector3(0, 0.1, -11)]
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE

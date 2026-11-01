@@ -140,7 +140,7 @@ radius = 4.0
 position = Vector3(0, 0.2, 5)
 
 [node name="MeleeEnemy" parent="." instance=ExtResource("6_enemy")]
-position = Vector3(0, 1.1, -10)
+position = Vector3(0, 0.1, -10)
 
 [node name="TargetLeft" parent="." instance=ExtResource("3_target")]
 position = Vector3(-4, 1.1, -5)
