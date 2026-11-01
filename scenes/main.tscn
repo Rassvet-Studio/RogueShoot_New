@@ -1,0 +1,116 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
+
+[sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
+sky_top_color = Color(0.025, 0.055, 0.12, 1)
+sky_horizon_color = Color(0.28, 0.34, 0.46, 1)
+ground_bottom_color = Color(0.015, 0.02, 0.035, 1)
+ground_horizon_color = Color(0.18, 0.2, 0.25, 1)
+
+[sub_resource type="Sky" id="Sky"]
+sky_material = SubResource("SkyMaterial")
+
+[sub_resource type="Environment" id="Environment"]
+background_mode = 2
+sky = SubResource("Sky")
+ambient_light_source = 3
+ambient_light_color = Color(0.28, 0.34, 0.5, 1)
+ambient_light_energy = 0.55
+tonemap_mode = 2
+
+[sub_resource type="BoxMesh" id="FloorMesh"]
+size = Vector3(36, 0.2, 36)
+
+[sub_resource type="BoxShape3D" id="FloorShape"]
+size = Vector3(36, 0.2, 36)
+
+[sub_resource type="StandardMaterial3D" id="FloorMaterial"]
+albedo_color = Color(0.12, 0.15, 0.2, 1)
+metallic = 0.15
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="ObstacleMesh"]
+size = Vector3(2.5, 2.5, 2.5)
+
+[sub_resource type="BoxShape3D" id="ObstacleShape"]
+size = Vector3(2.5, 2.5, 2.5)
+
+[sub_resource type="StandardMaterial3D" id="ObstacleMaterial"]
+albedo_color = Color(0.42, 0.2, 0.16, 1)
+roughness = 0.7
+
+[sub_resource type="BoxMesh" id="WallMesh"]
+size = Vector3(8, 2.5, 0.5)
+
+[sub_resource type="BoxShape3D" id="WallShape"]
+size = Vector3(8, 2.5, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="WallMaterial"]
+albedo_color = Color(0.2, 0.26, 0.34, 1)
+roughness = 0.75
+
+[node name="Main" type="Node3D"]
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-52, -28, 0)
+light_color = Color(0.78, 0.86, 1, 1)
+light_energy = 1.25
+shadow_enabled = true
+
+[node name="FillLight" type="OmniLight3D" parent="."]
+position = Vector3(0, 5, 0)
+omni_range = 18.0
+light_color = Color(0.4, 0.55, 1, 1)
+light_energy = 1.8
+
+[node name="Floor" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 2
+
+[node name="Mesh" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("FloorMesh")
+material_override = SubResource("FloorMaterial")
+
+[node name="Collision" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("FloorShape")
+
+[node name="ObstacleA" type="StaticBody3D" parent="."]
+position = Vector3(-4, 1.25, -5)
+collision_layer = 1
+
+[node name="Mesh" type="MeshInstance3D" parent="ObstacleA"]
+mesh = SubResource("ObstacleMesh")
+material_override = SubResource("ObstacleMaterial")
+
+[node name="Collision" type="CollisionShape3D" parent="ObstacleA"]
+shape = SubResource("ObstacleShape")
+
+[node name="ObstacleB" type="StaticBody3D" parent="."]
+position = Vector3(4, 1.25, -8)
+rotation_degrees = Vector3(0, 35, 0)
+collision_layer = 1
+
+[node name="Mesh" type="MeshInstance3D" parent="ObstacleB"]
+mesh = SubResource("ObstacleMesh")
+material_override = SubResource("ObstacleMaterial")
+
+[node name="Collision" type="CollisionShape3D" parent="ObstacleB"]
+shape = SubResource("ObstacleShape")
+
+[node name="BackWall" type="StaticBody3D" parent="."]
+position = Vector3(0, 1.25, -13)
+collision_layer = 1
+
+[node name="Mesh" type="MeshInstance3D" parent="BackWall"]
+mesh = SubResource("WallMesh")
+material_override = SubResource("WallMaterial")
+
+[node name="Collision" type="CollisionShape3D" parent="BackWall"]
+shape = SubResource("WallShape")
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+position = Vector3(0, 0.2, 5)
