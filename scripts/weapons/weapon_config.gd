@@ -10,7 +10,7 @@ extends Resource
 @export_category("Fire")
 @export var rounds_per_minute: float = 600.0
 @export var damage: float = 18.0
-@export var range: float = 100.0
+@export var max_range: float = 100.0
 @export_category("Recoil")
 @export var recoil_pitch: float = 0.55
 @export var recoil_yaw: float = 0.12

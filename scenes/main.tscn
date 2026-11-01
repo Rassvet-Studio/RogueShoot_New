@@ -1,7 +1,6 @@
 [gd_scene load_steps=18 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
-[ext_resource type="PackedScene" path="res://scenes/weapons/automatic_rifle.tscn" id="2_rifle"]
 [ext_resource type="PackedScene" path="res://scenes/targets/target.tscn" id="3_target"]
 [ext_resource type="PackedScene" path="res://scenes/ui_range_hud.tscn" id="4_hud"]
 [ext_resource type="Script" path="res://scripts/world/main.gd" id="5_main"]
@@ -119,8 +118,6 @@ shape = SubResource("WallShape")
 
 [node name="Player" parent="." instance=ExtResource("1_player")]
 position = Vector3(0, 0.2, 5)
-
-[node name="AutomaticRifle" parent="Player/CameraPivot" instance=ExtResource("2_rifle")]
 
 [node name="TargetLeft" parent="." instance=ExtResource("3_target")]
 position = Vector3(-4, 1.1, -5)

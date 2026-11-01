@@ -73,7 +73,7 @@ func _try_fire() -> void:
 func _shoot_hitscan() -> void:
 	var origin := camera.global_position
 	var direction := -camera.global_transform.basis.z
-	var query := PhysicsRayQueryParameters3D.create(origin, origin + direction * config.range)
+	var query := PhysicsRayQueryParameters3D.create(origin, origin + direction * config.max_range)
 	query.collision_mask = 5
 	query.collide_with_areas = true
 	var result := get_world_3d().direct_space_state.intersect_ray(query)
