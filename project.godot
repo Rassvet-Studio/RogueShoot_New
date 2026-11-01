@@ -28,6 +28,7 @@ jump={"deadzone": 0.5, "events": [Object(InputEventKey,"physical_keycode":32)]}
 toggle_mouse_capture={"deadzone": 0.5, "events": [Object(InputEventKey,"physical_keycode":4194305)]}
 fire={"deadzone": 0.5, "events": [Object(InputEventMouseButton,"button_index":1)]}
 reload={"deadzone": 0.5, "events": [Object(InputEventKey,"physical_keycode":82)]}
+slide={"deadzone": 0.5, "events": [Object(InputEventKey,"physical_keycode":4194326)]}
 
 [layer_names]
 3d_physics/layer_1="World"
