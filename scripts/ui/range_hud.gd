@@ -5,7 +5,9 @@ extends CanvasLayer
 @onready var status_label: Label = $Margin/VBox/Status
 @onready var hit_marker: Label = $HitMarker
 @onready var module_label: Label = $Margin/VBox/Module
+@onready var slide_label: Label = $Margin/VBox/Slide
 var _hit_marker_time := 0.0
+var _player: FPSPlayer
 
 func _ready() -> void:
 	hit_marker.visible = false
@@ -18,7 +20,24 @@ func bind_weapon(weapon: AutomaticRifle) -> void:
 	_on_ammo_changed(weapon.magazine_ammo, weapon.reserve_ammo)
 	module_label.text = "Модуль отдачи: " + ("ВКЛ" if weapon.config.recoil_module_enabled else "ВЫКЛ")
 
+func bind_player(player: FPSPlayer) -> void:
+	_player = player
+
+func _update_slide_indicator() -> void:
+	if _player == null:
+		return
+	if _player.is_sliding:
+		slide_label.text = "СКОЛЬЖЕНИЕ"
+		slide_label.modulate = Color(1.0, 0.8, 0.3, 1.0)
+	elif _player.slide_cooldown_remaining > 0.0:
+		slide_label.text = "СКОЛЬЖЕНИЕ: КД %.1f" % _player.slide_cooldown_remaining
+		slide_label.modulate = Color(0.65, 0.65, 0.7, 1.0)
+	else:
+		slide_label.text = "СКОЛЬЖЕНИЕ: ГОТОВО"
+		slide_label.modulate = Color(0.55, 1.0, 0.65, 1.0)
+
 func _process(delta: float) -> void:
+	_update_slide_indicator()
 	if _hit_marker_time > 0.0:
 		_hit_marker_time -= delta
 		if _hit_marker_time <= 0.0:

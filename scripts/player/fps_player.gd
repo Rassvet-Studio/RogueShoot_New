@@ -2,14 +2,19 @@ class_name FPSPlayer
 extends CharacterBody3D
 ## Extensible local player foundation. Networking can later own player_id/input authority.
 
+signal slide_state_changed(active: bool)
+
 @export_category("Movement")
 @export var move_speed: float = 6.0
 @export var jump_velocity: float = 5.5
 @export var gravity: float = 18.0
 
 @export_category("Slide")
-@export var slide_friction: float = 4.5
-@export var slide_min_speed: float = 4.5
+@export var slide_impulse_speed: float = 6.0
+@export var slide_friction: float = 10.0
+@export var slide_min_speed: float = 3.5
+@export var slide_max_duration: float = 0.9
+@export var slide_cooldown: float = 3.0
 @export var slide_steer_strength: float = 7.0
 @export var slide_camera_height: float = 0.95
 @export var slide_camera_speed: float = 8.0
@@ -26,10 +31,20 @@ extends CharacterBody3D
 var _pitch_degrees := 0.0
 var _recoil_pitch := 0.0
 var _is_sliding := false
+var _slide_elapsed := 0.0
+var _slide_cooldown_remaining := 0.0
 
 var is_sliding: bool:
 	get:
 		return _is_sliding
+
+var slide_cooldown_remaining: float:
+	get:
+		return _slide_cooldown_remaining
+
+var slide_ready: bool:
+	get:
+		return not _is_sliding and _slide_cooldown_remaining <= 0.0
 
 func _ready() -> void:
 	add_to_group("players")
@@ -45,6 +60,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_rotate_view(event.relative)
 
 func _physics_process(delta: float) -> void:
+	_slide_cooldown_remaining = move_toward(_slide_cooldown_remaining, 0.0, delta)
 	var was_on_floor := is_on_floor()
 	if not is_on_floor():
 		velocity.y -= gravity * delta
@@ -61,8 +77,8 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.x = wish_direction.x * move_speed
 		velocity.z = wish_direction.z * move_speed
-		if was_on_floor and Input.is_action_pressed("slide") and wish_direction != Vector3.ZERO and _horizontal_speed() >= slide_min_speed:
-			_begin_slide()
+		if was_on_floor and Input.is_action_just_pressed("slide"):
+			_begin_slide(wish_direction)
 	move_and_slide()
 	if _is_sliding and not is_on_floor():
 		_end_slide()
@@ -71,14 +87,27 @@ func _physics_process(delta: float) -> void:
 	var target_camera_height := slide_camera_height if _is_sliding else standing_camera_height
 	camera_pivot.position.y = move_toward(camera_pivot.position.y, target_camera_height, slide_camera_speed * delta)
 
-func _begin_slide() -> void:
+
+func _begin_slide(wish_direction: Vector3) -> void:
+	if not slide_ready or wish_direction == Vector3.ZERO or not is_on_floor():
+		return
 	_is_sliding = true
+	_slide_elapsed = 0.0
+	_slide_cooldown_remaining = slide_cooldown
+	var launch_speed := _horizontal_speed() + slide_impulse_speed
+	velocity.x = wish_direction.x * launch_speed
+	velocity.z = wish_direction.z * launch_speed
+	slide_state_changed.emit(true)
 
 func _end_slide() -> void:
+	if not _is_sliding:
+		return
 	_is_sliding = false
+	slide_state_changed.emit(false)
 
 func _process_slide(delta: float, wish_direction: Vector3) -> void:
-	if not Input.is_action_pressed("slide") or not is_on_floor():
+	_slide_elapsed += delta
+	if not is_on_floor() or _slide_elapsed >= slide_max_duration:
 		_end_slide()
 		return
 	var horizontal_velocity := Vector2(velocity.x, velocity.z)

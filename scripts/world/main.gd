@@ -9,6 +9,7 @@ extends Node3D
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	hud.bind_player(player)
 	module_on_button.pressed.connect(_select_module.bind(true))
 	module_off_button.pressed.connect(_select_module.bind(false))
 	setup_panel.show()
