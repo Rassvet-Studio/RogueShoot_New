@@ -16,9 +16,13 @@ extends CharacterBody3D
 @onready var camera: Camera3D = $CameraPivot/Camera3D
 
 var _pitch_degrees := 0.0
+var _recoil_pitch := 0.0
 
 func _ready() -> void:
 	add_to_group("players")
+	_capture_mouse()
+
+func start_control() -> void:
 	_capture_mouse()
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -40,11 +44,17 @@ func _physics_process(delta: float) -> void:
 	velocity.x = wish_direction.x * move_speed
 	velocity.z = wish_direction.z * move_speed
 	move_and_slide()
+	_recoil_pitch = move_toward(_recoil_pitch, 0.0, 8.0 * delta)
+	camera_pivot.rotation_degrees.x = _pitch_degrees + _recoil_pitch
 
 func _rotate_view(relative_motion: Vector2) -> void:
 	rotate_y(deg_to_rad(-relative_motion.x * mouse_sensitivity))
 	_pitch_degrees = clamp(_pitch_degrees - relative_motion.y * mouse_sensitivity, min_pitch, max_pitch)
-	camera_pivot.rotation_degrees.x = _pitch_degrees
+	camera_pivot.rotation_degrees.x = _pitch_degrees + _recoil_pitch
+
+func add_camera_recoil(pitch: float, yaw: float) -> void:
+	_recoil_pitch = clampf(_recoil_pitch + pitch, -20.0, 20.0)
+	rotation_degrees.y += yaw
 
 func _toggle_mouse_capture() -> void:
 	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
