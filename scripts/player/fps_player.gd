@@ -3,6 +3,7 @@ extends CharacterBody3D
 ## Extensible local player foundation. Networking can later own player_id/input authority.
 
 signal slide_state_changed(active: bool)
+signal defeated
 
 @export_category("Movement")
 @export var move_speed: float = 6.0
@@ -27,6 +28,7 @@ signal slide_state_changed(active: bool)
 
 @onready var camera_pivot: Node3D = $CameraPivot
 @onready var camera: Camera3D = $CameraPivot/Camera3D
+@onready var health: HealthComponent = $Health
 
 var _pitch_degrees := 0.0
 var _recoil_pitch := 0.0
@@ -48,6 +50,7 @@ var slide_ready: bool:
 
 func _ready() -> void:
 	add_to_group("players")
+	health.died.connect(_on_died)
 	_capture_mouse()
 
 func start_control() -> void:
@@ -60,6 +63,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		_rotate_view(event.relative)
 
 func _physics_process(delta: float) -> void:
+	if not is_alive():
+		velocity = Vector3.ZERO
+		return
 	_slide_cooldown_remaining = move_toward(_slide_cooldown_remaining, 0.0, delta)
 	var was_on_floor := is_on_floor()
 	if not is_on_floor():
@@ -124,6 +130,16 @@ func _process_slide(delta: float, wish_direction: Vector3) -> void:
 
 func _horizontal_speed() -> float:
 	return Vector2(velocity.x, velocity.z).length()
+
+func apply_damage(amount: float, source = null) -> bool:
+	return health.apply_damage(amount, source)
+
+func is_alive() -> bool:
+	return not health.is_dead
+
+func _on_died() -> void:
+	_end_slide()
+	defeated.emit()
 
 func _rotate_view(relative_motion: Vector2) -> void:
 	rotate_y(deg_to_rad(-relative_motion.x * mouse_sensitivity))

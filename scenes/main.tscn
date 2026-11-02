@@ -1,9 +1,10 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/targets/target.tscn" id="3_target"]
 [ext_resource type="PackedScene" path="res://scenes/ui_range_hud.tscn" id="4_hud"]
 [ext_resource type="Script" path="res://scripts/world/main.gd" id="5_main"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/melee_enemy.tscn" id="6_enemy"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
 sky_top_color = Color(0.025, 0.055, 0.12, 1)
@@ -53,11 +54,18 @@ size = Vector3(8, 2.5, 0.5)
 albedo_color = Color(0.2, 0.26, 0.34, 1)
 roughness = 0.75
 
+[sub_resource type="NavigationMesh" id="ArenaNavigationMesh"]
+vertices = PackedVector3Array(-18, 0.1, -18, 18, 0.1, -18, 18, 0.1, 18, -18, 0.1, 18)
+polygons = [PackedInt32Array(0, 1, 2, 3)]
+
 [node name="Main" type="Node3D"]
 script = ExtResource("5_main")
 
 [node name="Environment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment")
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("ArenaNavigationMesh")
 
 [node name="KeyLight" type="DirectionalLight3D" parent="."]
 rotation_degrees = Vector3(-52, -28, 0)
@@ -93,6 +101,10 @@ material_override = SubResource("ObstacleMaterial")
 [node name="Collision" type="CollisionShape3D" parent="ObstacleA"]
 shape = SubResource("ObstacleShape")
 
+[node name="NavigationObstacle3D" type="NavigationObstacle3D" parent="ObstacleA"]
+height = 2.5
+radius = 1.8
+
 [node name="ObstacleB" type="StaticBody3D" parent="."]
 position = Vector3(4, 1.25, -8)
 rotation_degrees = Vector3(0, 35, 0)
@@ -105,6 +117,10 @@ material_override = SubResource("ObstacleMaterial")
 [node name="Collision" type="CollisionShape3D" parent="ObstacleB"]
 shape = SubResource("ObstacleShape")
 
+[node name="NavigationObstacle3D" type="NavigationObstacle3D" parent="ObstacleB"]
+height = 2.5
+radius = 1.8
+
 [node name="BackWall" type="StaticBody3D" parent="."]
 position = Vector3(0, 1.25, -13)
 collision_layer = 1
@@ -116,8 +132,15 @@ material_override = SubResource("WallMaterial")
 [node name="Collision" type="CollisionShape3D" parent="BackWall"]
 shape = SubResource("WallShape")
 
+[node name="NavigationObstacle3D" type="NavigationObstacle3D" parent="BackWall"]
+height = 2.5
+radius = 4.0
+
 [node name="Player" parent="." instance=ExtResource("1_player")]
 position = Vector3(0, 0.2, 5)
+
+[node name="MeleeEnemy" parent="." instance=ExtResource("6_enemy")]
+position = Vector3(0, 0.1, -10)
 
 [node name="TargetLeft" parent="." instance=ExtResource("3_target")]
 position = Vector3(-4, 1.1, -5)
