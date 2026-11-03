@@ -12,6 +12,9 @@ extends CanvasLayer
 @onready var enemies_label: Label = $WaveInfo/Enemies
 @onready var next_wave_label: Label = $WaveInfo/NextWave
 @onready var wave_announcement: Label = $WaveAnnouncement
+@onready var result_wave_label: Label = $DefeatPanel/Center/VBox/WaveResult
+@onready var result_kills_label: Label = $DefeatPanel/Center/VBox/KillsResult
+@onready var result_time_label: Label = $DefeatPanel/Center/VBox/TimeResult
 var _hit_marker_time := 0.0
 var _wave_announcement_time := 0.0
 var _player: FPSPlayer
@@ -32,7 +35,6 @@ func bind_weapon(weapon: AutomaticRifle) -> void:
 func bind_player(player: FPSPlayer) -> void:
 	_player = player
 	_player.health.health_changed.connect(_on_player_health_changed)
-	_player.health.died.connect(show_defeat)
 	_on_player_health_changed(_player.health.current_health, _player.health.max_health)
 
 func bind_wave_controller(controller: WaveController) -> void:
@@ -60,7 +62,14 @@ func _on_intermission_changed(remaining: float) -> void:
 func is_defeat_visible() -> bool:
 	return defeat_panel.visible
 
-func show_defeat() -> void:
+
+func show_results(wave: int, kills: int, survival_time: float) -> void:
+	if defeat_panel.visible:
+		return
+	result_wave_label.text = "Достигнутая волна: %d" % wave
+	result_kills_label.text = "Убито врагов: %d" % kills
+	var total_seconds := maxi(int(survival_time), 0)
+	result_time_label.text = "Время выживания: %02d:%02d" % [total_seconds / 60, total_seconds % 60]
 	defeat_panel.show()
 	status_label.text = ""
 
