@@ -162,6 +162,8 @@ func _ensure_network_player(peer_id: int) -> FPSPlayer:
 	remote.set_meta("network_remote", true)
 	add_child(remote)
 	remote.configure_network(peer_id, false)
+	if _network_mode == "host" and _run_started:
+		(remote.get_node("CameraPivot/AutomaticRifle") as AutomaticRifle).setup(WeaponConfig.for_module(_module_enabled))
 	remote.defeated.connect(_on_remote_player_defeated.bind(peer_id))
 	if _network_mode == "host":
 		remote.health.health_changed.connect(_on_network_player_health_changed.bind(peer_id))
