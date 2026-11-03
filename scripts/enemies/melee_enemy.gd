@@ -137,9 +137,10 @@ func _on_health_changed(current: float, _maximum: float) -> void:
 
 func _on_died() -> void:
 	set_physics_process(false)
+	navigation_agent.avoidance_enabled = false
 	$CollisionShape3D.set_deferred("disabled", true)
 	var tween := create_tween()
-	tween.tween_property(self, "scale", Vector3.ZERO, 0.2)
+	tween.tween_property(visual, "scale", Vector3.ZERO, 0.2)
 	tween.tween_callback(queue_free)
 
 func _update_flash(delta: float) -> void:

@@ -7,14 +7,12 @@ extends Node3D
 @onready var module_on_button: Button = $RangeHUD/SetupPanel/Center/VBox/ModuleOn
 @onready var module_off_button: Button = $RangeHUD/SetupPanel/Center/VBox/ModuleOff
 @onready var restart_button: Button = $RangeHUD/DefeatPanel/Center/VBox/Restart
-@export var enemy_scene: PackedScene = preload("res://scenes/enemies/melee_enemy.tscn")
-
-var _spawn_index := 0
-var _enemy_spawn_points := [Vector3(-8, 0.1, -8), Vector3(8, 0.1, -8), Vector3(0, 0.1, -11)]
+@onready var wave_controller: WaveController = $WaveController
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	hud.bind_player(player)
+	hud.bind_wave_controller(wave_controller)
 	module_on_button.pressed.connect(_select_module.bind(true))
 	module_off_button.pressed.connect(_select_module.bind(false))
 	restart_button.pressed.connect(_restart_test)
@@ -30,14 +28,13 @@ func _select_module(enabled: bool) -> void:
 	hud.bind_weapon(rifle)
 	setup_panel.hide()
 	player.start_control()
+	wave_controller.start()
 
 func _spawn_enemy() -> void:
-	var enemy := enemy_scene.instantiate()
-	add_child(enemy)
-	enemy.global_position = _enemy_spawn_points[_spawn_index % _enemy_spawn_points.size()]
-	_spawn_index += 1
+	wave_controller.spawn_test_enemy()
 
 func _on_player_defeated() -> void:
+	wave_controller.stop()
 	hud.show_defeat()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 

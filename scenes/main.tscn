@@ -1,10 +1,10 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/targets/target.tscn" id="3_target"]
 [ext_resource type="PackedScene" path="res://scenes/ui_range_hud.tscn" id="4_hud"]
 [ext_resource type="Script" path="res://scripts/world/main.gd" id="5_main"]
-[ext_resource type="PackedScene" path="res://scenes/enemies/melee_enemy.tscn" id="6_enemy"]
+[ext_resource type="Script" path="res://scripts/world/wave_controller.gd" id="6_waves"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
 sky_top_color = Color(0.025, 0.055, 0.12, 1)
@@ -139,8 +139,28 @@ radius = 4.0
 [node name="Player" parent="." instance=ExtResource("1_player")]
 position = Vector3(0, 0.2, 5)
 
-[node name="MeleeEnemy" parent="." instance=ExtResource("6_enemy")]
-position = Vector3(0, 0.1, -10)
+[node name="EnemySpawnPoints" type="Node3D" parent="."]
+
+[node name="NorthWest" type="Marker3D" parent="EnemySpawnPoints"]
+position = Vector3(-8, 0.1, -10)
+
+[node name="NorthEast" type="Marker3D" parent="EnemySpawnPoints"]
+position = Vector3(8, 0.1, -10)
+
+[node name="West" type="Marker3D" parent="EnemySpawnPoints"]
+position = Vector3(-10, 0.1, -2)
+
+[node name="East" type="Marker3D" parent="EnemySpawnPoints"]
+position = Vector3(10, 0.1, -2)
+
+[node name="SouthWest" type="Marker3D" parent="EnemySpawnPoints"]
+position = Vector3(-8, 0.1, 8)
+
+[node name="SouthEast" type="Marker3D" parent="EnemySpawnPoints"]
+position = Vector3(8, 0.1, 8)
+
+[node name="WaveController" type="Node3D" parent="."]
+script = ExtResource("6_waves")
 
 [node name="TargetLeft" parent="." instance=ExtResource("3_target")]
 position = Vector3(-4, 1.1, -5)
