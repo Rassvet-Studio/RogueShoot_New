@@ -7,6 +7,9 @@ signal enemy_count_changed(alive: int, pending: int)
 signal intermission_changed(remaining: float)
 signal wave_finished(number: int)
 signal run_stats_changed(wave: int, kills: int, survival_time: float)
+signal enemy_spawned(enemy_id: int, position: Vector3)
+signal enemy_removed(enemy_id: int)
+signal enemy_health_changed(enemy_id: int, current: float, maximum: float)
 
 @export_category("Wave")
 @export var first_wave_count: int = 3
@@ -38,6 +41,7 @@ var _player: Node3D
 var _enemy_parent: Node
 var _spawn_points_root: Node3D
 var _clearance_shape: SphereShape3D
+var _next_enemy_id := 1
 
 enum State { IDLE, SPAWNING, ACTIVE, WAITING, STOPPED }
 
@@ -76,6 +80,24 @@ func spawn_test_enemy() -> bool:
 		return false
 	var enemy: Node = _create_enemy(Vector3(spawn_position))
 	return enemy != null
+
+func spawn_network_replica(enemy_id: int, position: Vector3) -> Node:
+	if enemy_scene == null or _enemy_parent == null:
+		return null
+	var enemy := enemy_scene.instantiate()
+	enemy.set_meta("network_replica", true)
+	enemy.set_meta("network_id", enemy_id)
+	_enemy_parent.add_child(enemy)
+	enemy.global_position = position
+	return enemy
+
+func get_network_snapshots() -> Array[Dictionary]:
+	var snapshots: Array[Dictionary] = []
+	for enemy in _active_enemies.keys():
+		if is_instance_valid(enemy):
+			var health := enemy.get_node_or_null("Health") as HealthComponent
+			snapshots.append({"id": int(enemy.get_meta("network_id", -1)), "position": enemy.global_position, "health": health.current_health if health != null else 0.0})
+	return snapshots
 
 func _process(delta: float) -> void:
 	if not is_running:
@@ -137,9 +159,13 @@ func _create_enemy(spawn_position: Vector3) -> Node:
 	if enemy_scene == null or _enemy_parent == null:
 		return null
 	var enemy := enemy_scene.instantiate()
+	var enemy_id := _next_enemy_id
+	_next_enemy_id += 1
+	enemy.set_meta("network_id", enemy_id)
 	_enemy_parent.add_child(enemy)
 	enemy.global_position = spawn_position
 	_track_enemy(enemy)
+	enemy_spawned.emit(enemy_id, spawn_position)
 	return enemy
 
 func _track_enemy(enemy: Node) -> void:
@@ -147,6 +173,7 @@ func _track_enemy(enemy: Node) -> void:
 	var health := enemy.get_node_or_null("Health") as HealthComponent
 	if health != null:
 		health.died.connect(_on_enemy_died.bind(enemy))
+		health.health_changed.connect(_on_enemy_health_changed.bind(enemy))
 	enemy.tree_exited.connect(_on_enemy_exited.bind(enemy))
 	_emit_enemy_count()
 
@@ -154,10 +181,15 @@ func _on_enemy_died(enemy: Node) -> void:
 	if not _active_enemies.has(enemy):
 		return
 	_active_enemies.erase(enemy)
+	enemy_removed.emit(int(enemy.get_meta("network_id", -1)))
 	total_kills += 1
 	run_stats_changed.emit(current_wave, total_kills, survival_time)
 	_emit_enemy_count()
 	_try_finish_wave()
+
+func _on_enemy_health_changed(current: float, maximum: float, enemy: Node) -> void:
+	if is_instance_valid(enemy):
+		enemy_health_changed.emit(int(enemy.get_meta("network_id", -1)), current, maximum)
 
 func _on_enemy_exited(enemy: Node) -> void:
 	_active_enemies.erase(enemy)

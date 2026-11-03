@@ -32,3 +32,12 @@ func heal(amount: float) -> void:
 		return
 	current_health = minf(current_health + amount, max_health)
 	health_changed.emit(current_health, max_health)
+
+func set_network_health(value: float) -> void:
+	if is_dead and value > 0.0:
+		return
+	current_health = clampf(value, 0.0, max_health)
+	health_changed.emit(current_health, max_health)
+	if current_health <= 0.0 and not is_dead:
+		is_dead = true
+		died.emit()

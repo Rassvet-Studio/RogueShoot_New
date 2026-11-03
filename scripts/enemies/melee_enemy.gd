@@ -30,6 +30,9 @@ func _ready() -> void:
 	add_to_group("enemies")
 	health.died.connect(_on_died)
 	health.health_changed.connect(_on_health_changed)
+	if has_meta("network_replica"):
+		set_physics_process(false)
+		navigation_agent.avoidance_enabled = false
 	_base_material = visual.material_override
 	_hit_material = _make_flash_material(Color(1.0, 0.15, 0.08, 1.0))
 	_attack_material = _make_flash_material(Color(1.0, 0.65, 0.08, 1.0))

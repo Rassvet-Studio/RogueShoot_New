@@ -43,6 +43,11 @@ func bind_wave_controller(controller: WaveController) -> void:
 	controller.intermission_changed.connect(_on_intermission_changed)
 	_on_enemy_count_changed(controller.alive_enemy_count, controller.pending_enemy_count)
 
+func set_wave_state(number: int, alive: int, pending: int, next_wave_time: float) -> void:
+	wave_label.text = "Волна %d" % number
+	_on_enemy_count_changed(alive, pending)
+	_on_intermission_changed(next_wave_time)
+
 func _on_wave_started(number: int, total: int) -> void:
 	wave_label.text = "Волна %d" % number
 	wave_announcement.text = "ВОЛНА %d" % number

@@ -172,3 +172,46 @@ text = "Модуль ВКЛ — сильнее урон / отдача"
 [node name="ModuleOff" type="Button" parent="SetupPanel/Center/VBox"]
 layout_mode = 2
 text = "Модуль ВЫКЛ — обычный режим"
+
+[node name="NetworkPanel" type="PanelContainer" parent="."]
+offset_left = 420.0
+offset_top = 190.0
+offset_right = 860.0
+offset_bottom = 530.0
+
+[node name="Center" type="CenterContainer" parent="NetworkPanel"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="NetworkPanel/Center"]
+custom_minimum_size = Vector2(340, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="NetworkPanel/Center/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "RogueShoot"
+horizontal_alignment = 1
+
+[node name="Single" type="Button" parent="NetworkPanel/Center/VBox"]
+layout_mode = 2
+text = "Одиночная игра"
+
+[node name="Host" type="Button" parent="NetworkPanel/Center/VBox"]
+layout_mode = 2
+text = "Создать игру"
+
+[node name="Address" type="LineEdit" parent="NetworkPanel/Center/VBox"]
+layout_mode = 2
+placeholder_text = "IP хоста (например, 127.0.0.1)"
+text = "127.0.0.1"
+
+[node name="Join" type="Button" parent="NetworkPanel/Center/VBox"]
+layout_mode = 2
+text = "Присоединиться"
+
+[node name="Status" type="Label" parent="NetworkPanel/Center/VBox"]
+layout_mode = 2
+text = "Выберите режим"
+autowrap_mode = 2
+horizontal_alignment = 1
