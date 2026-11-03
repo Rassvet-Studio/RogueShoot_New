@@ -8,12 +8,18 @@ extends CanvasLayer
 @onready var slide_label: Label = $Margin/VBox/Slide
 @onready var health_bar: ProgressBar = $Margin/VBox/Health
 @onready var defeat_panel: PanelContainer = $DefeatPanel
+@onready var wave_label: Label = $WaveInfo/Wave
+@onready var enemies_label: Label = $WaveInfo/Enemies
+@onready var next_wave_label: Label = $WaveInfo/NextWave
+@onready var wave_announcement: Label = $WaveAnnouncement
 var _hit_marker_time := 0.0
+var _wave_announcement_time := 0.0
 var _player: FPSPlayer
 
 func _ready() -> void:
 	hit_marker.visible = false
 	defeat_panel.hide()
+	wave_announcement.visible = false
 
 func bind_weapon(weapon: AutomaticRifle) -> void:
 	weapon.ammo_changed.connect(_on_ammo_changed)
@@ -28,6 +34,28 @@ func bind_player(player: FPSPlayer) -> void:
 	_player.health.health_changed.connect(_on_player_health_changed)
 	_player.health.died.connect(show_defeat)
 	_on_player_health_changed(_player.health.current_health, _player.health.max_health)
+
+func bind_wave_controller(controller: WaveController) -> void:
+	controller.wave_started.connect(_on_wave_started)
+	controller.enemy_count_changed.connect(_on_enemy_count_changed)
+	controller.intermission_changed.connect(_on_intermission_changed)
+	_on_enemy_count_changed(controller.alive_enemy_count, controller.pending_enemy_count)
+
+func _on_wave_started(number: int, total: int) -> void:
+	wave_label.text = "Волна %d" % number
+	wave_announcement.text = "ВОЛНА %d" % number
+	wave_announcement.visible = true
+	_wave_announcement_time = 1.6
+	_on_enemy_count_changed(0, total)
+
+func _on_enemy_count_changed(alive: int, pending: int) -> void:
+	enemies_label.text = "Противники: %d" % (alive + pending)
+
+func _on_intermission_changed(remaining: float) -> void:
+	if remaining > 0.0:
+		next_wave_label.text = "Следующая волна: %.1f" % remaining
+	else:
+		next_wave_label.text = "Следующая волна: —"
 
 func is_defeat_visible() -> bool:
 	return defeat_panel.visible
@@ -55,6 +83,10 @@ func _update_slide_indicator() -> void:
 
 func _process(delta: float) -> void:
 	_update_slide_indicator()
+	if _wave_announcement_time > 0.0:
+		_wave_announcement_time -= delta
+		if _wave_announcement_time <= 0.0:
+			wave_announcement.visible = false
 	if _hit_marker_time > 0.0:
 		_hit_marker_time -= delta
 		if _hit_marker_time <= 0.0:
