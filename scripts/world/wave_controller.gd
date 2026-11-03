@@ -6,6 +6,7 @@ signal wave_started(number: int, total: int)
 signal enemy_count_changed(alive: int, pending: int)
 signal intermission_changed(remaining: float)
 signal wave_finished(number: int)
+signal run_stats_changed(wave: int, kills: int, survival_time: float)
 
 @export_category("Wave")
 @export var first_wave_count: int = 3
@@ -26,6 +27,8 @@ var alive_enemy_count: int = 0
 var pending_enemy_count: int = 0
 var intermission_remaining: float = 0.0
 var is_running: bool = false
+var total_kills: int = 0
+var survival_time: float = 0.0
 
 var _spawn_timer := 0.0
 var _spawn_failures := 0
@@ -48,12 +51,18 @@ func _ready() -> void:
 func start() -> void:
 	if is_running or _state == State.STOPPED:
 		return
+	current_wave = 0
+	total_kills = 0
+	survival_time = 0.0
 	is_running = true
 	_begin_next_wave()
 
 func stop() -> void:
 	is_running = false
 	_state = State.STOPPED
+	for enemy in _active_enemies.keys():
+		if is_instance_valid(enemy) and enemy.has_method("set_physics_process"):
+			enemy.set_physics_process(false)
 	pending_enemy_count = 0
 	intermission_remaining = 0.0
 	intermission_changed.emit(0.0)
@@ -71,6 +80,8 @@ func spawn_test_enemy() -> bool:
 func _process(delta: float) -> void:
 	if not is_running:
 		return
+	survival_time += delta
+	run_stats_changed.emit(current_wave, total_kills, survival_time)
 	match _state:
 		State.SPAWNING:
 			_process_spawning(delta)
@@ -140,7 +151,11 @@ func _track_enemy(enemy: Node) -> void:
 	_emit_enemy_count()
 
 func _on_enemy_died(enemy: Node) -> void:
+	if not _active_enemies.has(enemy):
+		return
 	_active_enemies.erase(enemy)
+	total_kills += 1
+	run_stats_changed.emit(current_wave, total_kills, survival_time)
 	_emit_enemy_count()
 	_try_finish_wave()
 

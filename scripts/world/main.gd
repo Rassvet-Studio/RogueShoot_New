@@ -9,6 +9,8 @@ extends Node3D
 @onready var restart_button: Button = $RangeHUD/DefeatPanel/Center/VBox/Restart
 @onready var wave_controller: WaveController = $WaveController
 
+var _run_finished := false
+
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	hud.bind_player(player)
@@ -34,8 +36,11 @@ func _spawn_enemy() -> void:
 	wave_controller.spawn_test_enemy()
 
 func _on_player_defeated() -> void:
+	if _run_finished:
+		return
+	_run_finished = true
 	wave_controller.stop()
-	hud.show_defeat()
+	hud.show_results(wave_controller.current_wave, wave_controller.total_kills, wave_controller.survival_time)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _restart_test() -> void:

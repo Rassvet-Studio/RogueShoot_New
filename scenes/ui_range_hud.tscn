@@ -118,7 +118,22 @@ theme_override_constants/separation = 12
 [node name="Title" type="Label" parent="DefeatPanel/Center/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
-text = "ПОРАЖЕНИЕ"
+text = "ЗАБЕГ ЗАВЕРШЁН"
+horizontal_alignment = 1
+
+[node name="WaveResult" type="Label" parent="DefeatPanel/Center/VBox"]
+layout_mode = 2
+text = "Достигнутая волна: 0"
+horizontal_alignment = 1
+
+[node name="KillsResult" type="Label" parent="DefeatPanel/Center/VBox"]
+layout_mode = 2
+text = "Убито врагов: 0"
+horizontal_alignment = 1
+
+[node name="TimeResult" type="Label" parent="DefeatPanel/Center/VBox"]
+layout_mode = 2
+text = "Время выживания: 00:00"
 horizontal_alignment = 1
 
 [node name="Restart" type="Button" parent="DefeatPanel/Center/VBox"]
