@@ -35,6 +35,11 @@ var _recoil_pitch := 0.0
 var _is_sliding := false
 var _slide_elapsed := 0.0
 var _slide_cooldown_remaining := 0.0
+var _network_controlled := false
+var _network_peer_id := 1
+var _network_target_position := Vector3.ZERO
+var _network_target_yaw := 0.0
+var _network_target_pitch := 0.0
 
 var is_sliding: bool:
 	get:
@@ -51,10 +56,27 @@ var slide_ready: bool:
 func _ready() -> void:
 	add_to_group("players")
 	health.died.connect(_on_died)
-	_capture_mouse()
+	if not has_meta("network_remote"):
+		_capture_mouse()
 
 func start_control() -> void:
-	_capture_mouse()
+	if not _network_controlled or is_multiplayer_authority():
+		_capture_mouse()
+
+func configure_network(peer_id: int, locally_controlled: bool) -> void:
+	_network_controlled = true
+	_network_peer_id = peer_id
+	set_multiplayer_authority(peer_id)
+	if not locally_controlled:
+		camera.current = false
+		$CameraPivot/AutomaticRifle.set_physics_process(false)
+
+func apply_network_transform(position: Vector3, yaw: float, pitch: float) -> void:
+	if not _network_controlled or is_multiplayer_authority():
+		return
+	_network_target_position = position
+	_network_target_yaw = yaw
+	_network_target_pitch = pitch
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("toggle_mouse_capture"):
@@ -63,6 +85,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		_rotate_view(event.relative)
 
 func _physics_process(delta: float) -> void:
+	if _network_controlled and not is_multiplayer_authority():
+		global_position = global_position.lerp(_network_target_position, minf(delta * 12.0, 1.0))
+		rotation.y = lerp_angle(rotation.y, _network_target_yaw, minf(delta * 12.0, 1.0))
+		camera_pivot.rotation_degrees.x = rad_to_deg(_network_target_pitch)
+		return
 	if not is_alive():
 		velocity = Vector3.ZERO
 		return
@@ -92,6 +119,10 @@ func _physics_process(delta: float) -> void:
 	camera_pivot.rotation_degrees.x = _pitch_degrees + _recoil_pitch
 	var target_camera_height := slide_camera_height if _is_sliding else standing_camera_height
 	camera_pivot.position.y = move_toward(camera_pivot.position.y, target_camera_height, slide_camera_speed * delta)
+	if _network_controlled:
+		var scene := get_tree().current_scene
+		if scene.has_method("broadcast_player_transform"):
+			scene.broadcast_player_transform(_network_peer_id, global_position, rotation.y, camera_pivot.rotation.x)
 
 
 func _begin_slide(wish_direction: Vector3) -> void:

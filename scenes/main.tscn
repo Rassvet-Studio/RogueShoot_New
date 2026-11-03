@@ -1,10 +1,11 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/targets/target.tscn" id="3_target"]
 [ext_resource type="PackedScene" path="res://scenes/ui_range_hud.tscn" id="4_hud"]
 [ext_resource type="Script" path="res://scripts/world/main.gd" id="5_main"]
 [ext_resource type="Script" path="res://scripts/world/wave_controller.gd" id="6_waves"]
+[ext_resource type="Script" path="res://scripts/world/network_session.gd" id="7_network"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
 sky_top_color = Color(0.025, 0.055, 0.12, 1)
@@ -161,6 +162,9 @@ position = Vector3(8, 0.1, 8)
 
 [node name="WaveController" type="Node3D" parent="."]
 script = ExtResource("6_waves")
+
+[node name="NetworkSession" type="Node" parent="."]
+script = ExtResource("7_network")
 
 [node name="TargetLeft" parent="." instance=ExtResource("3_target")]
 position = Vector3(-4, 1.1, -5)

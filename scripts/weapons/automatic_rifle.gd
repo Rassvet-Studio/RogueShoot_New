@@ -52,7 +52,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_start_reload()
 
 func _physics_process(_delta: float) -> void:
-	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED or is_reloading:
+	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED or is_reloading or (player.has_method("is_alive") and not player.is_alive()):
 		return
 	if Input.is_action_pressed("fire"):
 		_try_fire()
@@ -73,6 +73,13 @@ func _try_fire() -> void:
 func _shoot_hitscan() -> void:
 	var origin := camera.global_position
 	var direction := -camera.global_transform.basis.z
+	var scene := get_tree().current_scene
+	if multiplayer.multiplayer_peer != null and not multiplayer.is_server() and scene.has_method("request_network_shot"):
+		scene.request_network_shot(origin, direction)
+		return
+	_shoot_hitscan_from(origin, direction)
+
+func _shoot_hitscan_from(origin: Vector3, direction: Vector3) -> void:
 	var query := PhysicsRayQueryParameters3D.create(origin, origin + direction * config.max_range)
 	query.collision_mask = 5
 	query.collide_with_areas = true
