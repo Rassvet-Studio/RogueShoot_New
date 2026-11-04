@@ -215,3 +215,80 @@ layout_mode = 2
 text = "Выберите режим"
 autowrap_mode = 2
 horizontal_alignment = 1
+
+[node name="Settings" type="Button" parent="NetworkPanel/Center/VBox"]
+layout_mode = 2
+text = "Настройки"
+
+[node name="SettingsPanel" type="PanelContainer" parent="."]
+offset_left = 420.0
+offset_top = 160.0
+offset_right = 860.0
+offset_bottom = 560.0
+
+[node name="Margin" type="MarginContainer" parent="SettingsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="SettingsPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="SettingsPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Настройки"
+horizontal_alignment = 1
+
+[node name="MouseLabel" type="Label" parent="SettingsPanel/Margin/VBox"]
+layout_mode = 2
+text = "Чувствительность мыши"
+
+[node name="MouseSensitivity" type="HSlider" parent="SettingsPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+min_value = 0.04
+max_value = 0.3
+step = 0.01
+value = 0.12
+
+[node name="MouseValue" type="Label" parent="SettingsPanel/Margin/VBox"]
+layout_mode = 2
+text = "0.12"
+
+[node name="VolumeLabel" type="Label" parent="SettingsPanel/Margin/VBox"]
+layout_mode = 2
+text = "Общая громкость"
+
+[node name="MasterVolume" type="HSlider" parent="SettingsPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+min_value = 0.0
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="VolumeValue" type="Label" parent="SettingsPanel/Margin/VBox"]
+layout_mode = 2
+text = "100%"
+
+[node name="Fullscreen" type="CheckButton" parent="SettingsPanel/Margin/VBox"]
+layout_mode = 2
+text = "Полноэкранный режим"
+
+[node name="Buttons" type="HBoxContainer" parent="SettingsPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Defaults" type="Button" parent="SettingsPanel/Margin/VBox/Buttons"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "По умолчанию"
+
+[node name="Back" type="Button" parent="SettingsPanel/Margin/VBox/Buttons"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Назад"

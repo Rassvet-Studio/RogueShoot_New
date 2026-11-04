@@ -12,11 +12,21 @@ const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
 @onready var network_join_button: Button = $RangeHUD/NetworkPanel/Center/VBox/Join
 @onready var network_address: LineEdit = $RangeHUD/NetworkPanel/Center/VBox/Address
 @onready var network_status: Label = $RangeHUD/NetworkPanel/Center/VBox/Status
+@onready var settings_button: Button = $RangeHUD/NetworkPanel/Center/VBox/Settings
 @onready var setup_panel: PanelContainer = $RangeHUD/SetupPanel
 @onready var module_on_button: Button = $RangeHUD/SetupPanel/Center/VBox/ModuleOn
 @onready var module_off_button: Button = $RangeHUD/SetupPanel/Center/VBox/ModuleOff
 @onready var restart_button: Button = $RangeHUD/DefeatPanel/Center/VBox/Restart
 @onready var wave_controller: WaveController = $WaveController
+@onready var settings_manager: SettingsManager = $SettingsManager
+@onready var settings_panel: PanelContainer = $RangeHUD/SettingsPanel
+@onready var mouse_sensitivity_slider: HSlider = $RangeHUD/SettingsPanel/Margin/VBox/MouseSensitivity
+@onready var mouse_value_label: Label = $RangeHUD/SettingsPanel/Margin/VBox/MouseValue
+@onready var volume_slider: HSlider = $RangeHUD/SettingsPanel/Margin/VBox/MasterVolume
+@onready var volume_value_label: Label = $RangeHUD/SettingsPanel/Margin/VBox/VolumeValue
+@onready var fullscreen_toggle: CheckButton = $RangeHUD/SettingsPanel/Margin/VBox/Fullscreen
+@onready var defaults_button: Button = $RangeHUD/SettingsPanel/Margin/VBox/Buttons/Defaults
+@onready var back_button: Button = $RangeHUD/SettingsPanel/Margin/VBox/Buttons/Back
 
 var _network_mode := "single"
 var _local_peer_id := 1
@@ -31,10 +41,17 @@ func _ready() -> void:
 	hud.bind_player(player)
 	hud.bind_wave_controller(wave_controller)
 	setup_panel.hide()
+	settings_panel.hide()
 	network_panel.show()
 	network_single_button.pressed.connect(_start_single)
 	network_host_button.pressed.connect(_create_host)
 	network_join_button.pressed.connect(_join_host)
+	settings_button.pressed.connect(_open_settings)
+	back_button.pressed.connect(_close_settings)
+	defaults_button.pressed.connect(_reset_settings)
+	mouse_sensitivity_slider.value_changed.connect(_on_mouse_sensitivity_changed)
+	volume_slider.value_changed.connect(_on_volume_changed)
+	fullscreen_toggle.toggled.connect(_on_fullscreen_toggled)
 	module_on_button.pressed.connect(_select_module.bind(true))
 	module_off_button.pressed.connect(_select_module.bind(false))
 	restart_button.pressed.connect(_restart_test)
@@ -51,6 +68,8 @@ func _ready() -> void:
 	wave_controller.enemy_spawned.connect(_on_enemy_spawned)
 	wave_controller.enemy_removed.connect(_on_enemy_removed)
 	wave_controller.enemy_health_changed.connect(_on_enemy_health_changed)
+	_refresh_settings_controls()
+	_apply_local_settings()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("spawn_enemy") and _run_started and not hud.is_defeat_visible():
@@ -87,6 +106,48 @@ func _on_client_connected() -> void:
 
 func _on_network_status(message: String) -> void:
 	network_status.text = message
+
+func _open_settings() -> void:
+	_refresh_settings_controls()
+	network_panel.hide()
+	setup_panel.hide()
+	settings_panel.show()
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+func _close_settings() -> void:
+	settings_panel.hide()
+	if _run_started:
+		player.start_control()
+	else:
+		network_panel.show()
+
+func _reset_settings() -> void:
+	settings_manager.reset_defaults()
+	_refresh_settings_controls()
+	_apply_local_settings()
+
+func _on_mouse_sensitivity_changed(value: float) -> void:
+	settings_manager.set_mouse_sensitivity(value)
+	_apply_local_settings()
+	mouse_value_label.text = "%.2f" % settings_manager.mouse_sensitivity
+
+func _on_volume_changed(value: float) -> void:
+	settings_manager.set_master_volume(value)
+	volume_value_label.text = "%d%%" % roundi(settings_manager.master_volume * 100.0)
+
+func _on_fullscreen_toggled(value: bool) -> void:
+	settings_manager.set_fullscreen(value)
+
+func _refresh_settings_controls() -> void:
+	mouse_sensitivity_slider.set_value_no_signal(settings_manager.mouse_sensitivity)
+	mouse_value_label.text = "%.2f" % settings_manager.mouse_sensitivity
+	volume_slider.set_value_no_signal(settings_manager.master_volume)
+	volume_value_label.text = "%d%%" % roundi(settings_manager.master_volume * 100.0)
+	fullscreen_toggle.set_pressed_no_signal(settings_manager.fullscreen)
+
+func _apply_local_settings() -> void:
+	# This is the local player instance, including a client in co-op mode.
+	player.mouse_sensitivity = settings_manager.mouse_sensitivity
 
 func _select_module(enabled: bool) -> void:
 	_activate_run(enabled)
