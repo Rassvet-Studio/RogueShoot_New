@@ -12,6 +12,9 @@ const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
 @onready var network_join_button: Button = $RangeHUD/NetworkPanel/Center/VBox/Join
 @onready var network_address: LineEdit = $RangeHUD/NetworkPanel/Center/VBox/Address
 @onready var network_status: Label = $RangeHUD/NetworkPanel/Center/VBox/Status
+@onready var lobby_label: Label = $RangeHUD/NetworkPanel/Center/VBox/Lobby
+@onready var start_run_button: Button = $RangeHUD/NetworkPanel/Center/VBox/StartRun
+@onready var leave_room_button: Button = $RangeHUD/NetworkPanel/Center/VBox/Leave
 @onready var settings_button: Button = $RangeHUD/NetworkPanel/Center/VBox/Settings
 @onready var setup_panel: PanelContainer = $RangeHUD/SetupPanel
 @onready var module_on_button: Button = $RangeHUD/SetupPanel/Center/VBox/ModuleOn
@@ -46,6 +49,8 @@ func _ready() -> void:
 	network_single_button.pressed.connect(_start_single)
 	network_host_button.pressed.connect(_create_host)
 	network_join_button.pressed.connect(_join_host)
+	start_run_button.pressed.connect(_host_start_run)
+	leave_room_button.pressed.connect(_leave_room)
 	settings_button.pressed.connect(_open_settings)
 	back_button.pressed.connect(_close_settings)
 	defaults_button.pressed.connect(_reset_settings)
@@ -62,6 +67,7 @@ func _ready() -> void:
 	network_session.peer_joined.connect(_on_peer_joined)
 	network_session.peer_left.connect(_on_peer_left)
 	network_session.server_left.connect(_on_server_left)
+	network_session.roster_changed.connect(_update_lobby)
 	wave_controller.wave_started.connect(_on_wave_started)
 	wave_controller.enemy_count_changed.connect(_on_enemy_count_changed)
 	wave_controller.intermission_changed.connect(_on_intermission_changed)
@@ -70,6 +76,7 @@ func _ready() -> void:
 	wave_controller.enemy_health_changed.connect(_on_enemy_health_changed)
 	_refresh_settings_controls()
 	_apply_local_settings()
+	_update_lobby()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("spawn_enemy") and _run_started and not hud.is_defeat_visible():
@@ -91,8 +98,15 @@ func _prepare_local_mode(mode: String, peer_id: int) -> void:
 	_local_peer_id = peer_id
 	if mode != "single":
 		player.configure_network(peer_id, true)
-	network_panel.hide()
-	setup_panel.show()
+	if mode == "single":
+		network_panel.hide()
+		setup_panel.show()
+	else:
+		network_panel.show()
+		setup_panel.hide()
+		start_run_button.visible = mode == "host"
+		leave_room_button.visible = true
+		_update_lobby()
 
 func _on_client_connected() -> void:
 	_local_peer_id = network_session.local_peer_id
@@ -100,12 +114,37 @@ func _on_client_connected() -> void:
 	player.configure_network(_local_peer_id, true)
 	network_status.text = "Подключено. Ожидание запуска хоста..."
 	network_panel.show()
+	start_run_button.visible = false
+	leave_room_button.visible = true
 	network_single_button.disabled = true
 	network_host_button.disabled = true
 	network_join_button.disabled = true
+	_update_lobby()
 
 func _on_network_status(message: String) -> void:
 	network_status.text = message
+
+func _update_lobby() -> void:
+	if _network_mode == "single":
+		lobby_label.text = "Одиночная игра"
+		return
+	if multiplayer.multiplayer_peer == null:
+		lobby_label.text = "Игроки: 1/5"
+		return
+	var connected_count := 1 + multiplayer.get_peers().size()
+	var lines: Array[String] = ["Игроки: %d/5" % connected_count]
+	for index in range(connected_count):
+		lines.append("Игрок %d%s" % [index + 1, " (хост)" if index == 0 else ""])
+	lobby_label.text = "\n".join(lines)
+
+func _host_start_run() -> void:
+	if _network_mode == "host":
+		_select_module(false)
+
+func _leave_room() -> void:
+	if network_session.multiplayer.multiplayer_peer != null:
+		network_session.multiplayer.multiplayer_peer = null
+	get_tree().reload_current_scene()
 
 func _open_settings() -> void:
 	_refresh_settings_controls()
@@ -211,6 +250,7 @@ func _on_server_left() -> void:
 	network_status.text = "Хост завершил игру"
 	_run_started = false
 	_run_finished = true
+	_update_lobby()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _ensure_network_player(peer_id: int) -> FPSPlayer:

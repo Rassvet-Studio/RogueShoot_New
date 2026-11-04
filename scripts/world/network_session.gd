@@ -9,9 +9,10 @@ signal connection_failed
 signal peer_joined(peer_id: int)
 signal peer_left(peer_id: int)
 signal server_left
+signal roster_changed
 
 @export var port: int = 7000
-@export var max_players: int = 2
+@export var max_players: int = 5
 
 var mode := "single"
 var is_host := false
@@ -38,6 +39,7 @@ func create_host() -> bool:
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	status_changed.emit("Игра создана. Ожидание второго игрока...")
 	mode_ready.emit(mode, local_peer_id)
+	roster_changed.emit()
 	return true
 
 func join_host(address: String) -> bool:
@@ -64,6 +66,7 @@ func _on_connected_to_server() -> void:
 	local_peer_id = multiplayer.get_unique_id()
 	status_changed.emit("Подключено к хосту")
 	connected_to_host.emit()
+	roster_changed.emit()
 
 func _on_connection_failed() -> void:
 	status_changed.emit("Подключение отклонено или не удалось")
@@ -78,7 +81,9 @@ func _on_server_disconnected() -> void:
 func _on_peer_connected(peer_id: int) -> void:
 	status_changed.emit("Игрок %d подключился" % peer_id)
 	peer_joined.emit(peer_id)
+	roster_changed.emit()
 
 func _on_peer_disconnected(peer_id: int) -> void:
 	status_changed.emit("Игрок %d отключился" % peer_id)
 	peer_left.emit(peer_id)
+	roster_changed.emit()

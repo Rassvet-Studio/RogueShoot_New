@@ -85,6 +85,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_rotate_view(event.relative)
 
 func _physics_process(delta: float) -> void:
+	if _network_controlled and multiplayer.multiplayer_peer == null:
+		return
 	if _network_controlled and not is_multiplayer_authority():
 		global_position = global_position.lerp(_network_target_position, minf(delta * 12.0, 1.0))
 		rotation.y = lerp_angle(rotation.y, _network_target_yaw, minf(delta * 12.0, 1.0))
