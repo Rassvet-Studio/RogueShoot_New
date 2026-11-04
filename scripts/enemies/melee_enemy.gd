@@ -25,6 +25,11 @@ var _hit_flash_remaining := 0.0
 var _base_material: Material
 var _hit_material: StandardMaterial3D
 var _attack_material: StandardMaterial3D
+var _safe_navigation_velocity := Vector3.ZERO
+var _desired_navigation_velocity := Vector3.ZERO
+var _last_target_position := Vector3.INF
+var _last_position := Vector3.ZERO
+var _stuck_time := 0.0
 
 func _ready() -> void:
 	add_to_group("enemies")
@@ -32,16 +37,22 @@ func _ready() -> void:
 	health.health_changed.connect(_on_health_changed)
 	if has_meta("network_replica"):
 		set_physics_process(false)
-		navigation_agent.avoidance_enabled = false
 	_base_material = visual.material_override
 	_hit_material = _make_flash_material(Color(1.0, 0.15, 0.08, 1.0))
 	_attack_material = _make_flash_material(Color(1.0, 0.65, 0.08, 1.0))
-	navigation_agent.path_desired_distance = 0.35
+	navigation_agent.path_desired_distance = 1.0
 	navigation_agent.target_desired_distance = attack_range * 0.8
-	navigation_agent.radius = 0.45
+	navigation_agent.radius = 0.55
 	navigation_agent.height = 1.8
 	navigation_agent.avoidance_enabled = true
 	navigation_agent.max_speed = move_speed
+	navigation_agent.neighbor_distance = 2.5
+	navigation_agent.time_horizon_agents = 1.0
+	navigation_agent.time_horizon_obstacles = 1.0
+	navigation_agent.velocity_computed.connect(_on_navigation_velocity_computed)
+	if has_meta("network_replica"):
+		navigation_agent.avoidance_enabled = false
+	_last_position = global_position
 
 func _physics_process(delta: float) -> void:
 	if health.is_dead:
@@ -55,7 +66,7 @@ func _physics_process(delta: float) -> void:
 	_target = _find_target()
 	if _target == null:
 		_stop(delta)
-		move_and_slide()
+		_move_with_collision(delta)
 		return
 	var offset := _target.global_position - global_position
 	var distance := Vector2(offset.x, offset.z).length()
@@ -65,7 +76,13 @@ func _physics_process(delta: float) -> void:
 		_try_attack()
 	else:
 		_chase_target(delta)
-	move_and_slide()
+	_move_with_collision(delta)
+	_update_stuck_state(delta)
+
+func _move_with_collision(delta: float) -> void:
+	var collision := move_and_collide(velocity * delta)
+	if collision != null:
+		velocity = velocity.slide(collision.get_normal())
 
 func _find_target() -> Node3D:
 	var nearest: Node3D
@@ -82,14 +99,17 @@ func _find_target() -> Node3D:
 	return nearest
 
 func _chase_target(delta: float) -> void:
-	if not navigation_agent.is_navigation_finished():
+	if _last_target_position == Vector3.INF or _last_target_position.distance_squared_to(_target.global_position) > 0.16:
 		navigation_agent.target_position = _target.global_position
-	else:
-		navigation_agent.target_position = _target.global_position
+		_last_target_position = _target.global_position
 	var next_position := navigation_agent.get_next_path_position()
 	var current_path := navigation_agent.get_current_navigation_path()
 	if current_path.size() > 1:
-		next_position = current_path[1]
+		for index in range(1, current_path.size()):
+			var path_point: Vector3 = current_path[index]
+			if path_point.distance_to(global_position) > navigation_agent.path_desired_distance:
+				next_position = path_point
+				break
 	var direction := next_position - global_position
 	direction.y = 0.0
 	if direction.length_squared() < 0.01:
@@ -97,9 +117,38 @@ func _chase_target(delta: float) -> void:
 		return
 	direction = direction.normalized()
 	var desired := direction * move_speed
+	_desired_navigation_velocity = desired
+	navigation_agent.velocity = desired
 	velocity.x = move_toward(velocity.x, desired.x, acceleration * delta)
 	velocity.z = move_toward(velocity.z, desired.z, acceleration * delta)
 	_face_direction(direction, delta)
+
+func _on_navigation_velocity_computed(safe_velocity: Vector3) -> void:
+	_safe_navigation_velocity = safe_velocity
+
+func _update_stuck_state(delta: float) -> void:
+	var moved_distance := global_position.distance_to(_last_position)
+	_last_position = global_position
+	if _target == null or _horizontal_speed() < 0.1:
+		_stuck_time = 0.0
+		return
+	if moved_distance < 0.02:
+		_stuck_time += delta
+		if _stuck_time > 0.15 and _desired_navigation_velocity.length_squared() > 0.01:
+			# Use a small collision-aware recovery step instead of teleporting.
+			var collision := move_and_collide(_desired_navigation_velocity * delta)
+			if collision != null:
+				velocity = velocity.slide(collision.get_normal())
+		if _stuck_time > 0.75:
+			# Request a fresh route after the recovery attempt.
+			_last_target_position = Vector3.INF
+			_safe_navigation_velocity = Vector3.ZERO
+			_stuck_time = 0.0
+	else:
+		_stuck_time = 0.0
+
+func _horizontal_speed() -> float:
+	return Vector2(velocity.x, velocity.z).length()
 
 func _stop(delta: float) -> void:
 	velocity.x = move_toward(velocity.x, 0.0, stopping_acceleration * delta)
