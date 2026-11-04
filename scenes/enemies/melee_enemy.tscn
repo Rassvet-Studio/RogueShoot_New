@@ -32,7 +32,7 @@ position = Vector3(0, 0.9, 0)
 shape = SubResource("EnemyShape")
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
-path_desired_distance = 1.0
+path_desired_distance = 0.35
 target_desired_distance = 1.35
 radius = 0.45
 height = 1.8
